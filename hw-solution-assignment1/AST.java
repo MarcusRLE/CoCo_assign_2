@@ -218,4 +218,27 @@ class Circuit extends AST{
 
         System.out.println(env.toString());
     }
+
+    public void nextCycle(Environment env, int cycle){
+        for(Trace siminput : siminputs){
+            String variable = siminput.signal;
+
+            // ====== ERROR HANDLING ======
+            if(siminput.values.length < cycle){
+                throw new RuntimeException("Value [" + cycle + "] of variable '" + variable + "' not defined");
+            };
+
+            Boolean nextValue = siminput.values[cycle];
+            env.setVariable(variable, nextValue);
+        }
+
+        latchUpdate(env);
+
+        for(Update update : updates){
+            update.eval(env);
+        }
+
+        System.out.println(env.toString());
+
+    }
 }
