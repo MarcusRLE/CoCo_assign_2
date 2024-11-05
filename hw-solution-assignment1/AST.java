@@ -5,8 +5,8 @@ import java.util.ArrayList;
 
 public abstract class AST{
     public void error(String msg){
-	System.err.println(msg);
-	System.exit(-1);
+        System.err.println(msg);
+        System.exit(-1);
     }
 };
 
@@ -17,24 +17,41 @@ public abstract class AST{
    (Negation). Moreover, an expression can be using any of the
    functions defined in the definitions. */
 
-abstract class Expr extends AST{}
+abstract class Expr extends AST{
+    abstract public Boolean eval(Environment env);
+}
 
 class Conjunction extends Expr{
     // Example: Signal1 * Signal2 
     Expr e1,e2;
     Conjunction(Expr e1,Expr e2){this.e1=e1; this.e2=e2;}
+    @Override
+    public Boolean eval(Environment env) {
+        Boolean conj = e1.eval(env) && e2.eval(env); 
+        return conj;
+    }
 }
 
 class Disjunction extends Expr{
     // Example: Signal1 + Signal2 
     Expr e1,e2;
     Disjunction(Expr e1,Expr e2){this.e1=e1; this.e2=e2;}
+    @Override
+    public Boolean eval(Environment env) {
+        Boolean disj = e1.eval(env) || e2.eval(env); 
+        return disj;
+    }
 }
 
 class Negation extends Expr{
     // Example: /Signal
     Expr e;
     Negation(Expr e){this.e=e;}
+    @Override
+    public Boolean eval(Environment env) {
+        Boolean neg = !e.eval(env); 
+        return neg;
+    }
 }
 
 class UseDef extends Expr{
@@ -45,11 +62,29 @@ class UseDef extends Expr{
     UseDef(String f, List<Expr> args){
 	this.f=f; this.args=args;
     }
+    @Override
+    public Boolean eval(Environment env) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'eval'");
+
+        // ==== POSSIBLE IMPLEMENTATION ====
+        // Def d = env.getDef(f);
+        // Environment newenv = new Environment(env);
+        // for(int i=0; i<args.size(); i++){
+        //     newenv.setVariable(d.args.get(i), args.get(i).eval(env));
+        // }
+        // return d.e.eval(newenv);
+    }
 }
 
 class Signal extends Expr{
     String varname; // a signal is just identified by a name 
     Signal(String varname){this.varname=varname;}
+    @Override
+    public Boolean eval(Environment env) {
+        Boolean value = env.getVariable(varname);
+        return value;
+    }
 }
 
 class Def extends AST{
@@ -71,6 +106,11 @@ class Update extends AST{
     String name;  // Signal being updated, e.g. "Signal1"
     Expr e;  // The value it receives, e.g., "/Signal2"
     Update(String name, Expr e){this.e=e; this.name=name;}
+
+    public void eval(Environment env) {
+        Boolean newValue = e.eval(env);
+        env.setVariable(name, newValue);
+    }
 }
 
 /* A Trace is a signal and an array of Booleans, for instance each
@@ -85,8 +125,16 @@ class Trace extends AST{
     String signal;
     Boolean[] values;
     Trace(String signal, Boolean[] values){
-	this.signal=signal;
-	this.values=values;
+	    this.signal=signal;
+	    this.values=values;
+    }
+
+    public String toString(){
+        String str = "";
+        for(Boolean value : values){
+            str += value ? "1" : "0";
+        }
+        return str;
     }
 }
 
@@ -132,5 +180,42 @@ class Circuit extends AST{
 	this.definitions=definitions;
 	this.updates=updates;
 	this.siminputs=siminputs;
+    }
+
+    public void latchesInit(Environment env){
+        for(String latch : latches){
+            String latchOutput = latch+"'";
+            env.setVariable(latchOutput, false);
+        }
+    }
+
+    public void latchUpdate(Environment env){
+        for(String latch : latches){
+            Boolean currentValue = env.getVariable(latch);
+            String latchOutput = latch+"'";
+            env.setVariable(latchOutput, currentValue);
+        }
+    }
+
+    public void initialize(Environment env){
+        for(Trace siminput : siminputs){
+            String variable = siminput.signal;
+
+            // ====== ERROR HANDLING ======
+            if(!env.hasVariable(variable) || siminput.values.length == 0){
+                throw new RuntimeException("Variable not defined: "+variable);
+            };
+
+            Boolean initValue = siminput.values[0];
+            env.setVariable(variable, initValue);
+        }
+
+        latchesInit(env);
+
+        for(Update update : updates){
+            update.eval(env);
+        }
+
+        System.out.println(env.toString());
     }
 }
