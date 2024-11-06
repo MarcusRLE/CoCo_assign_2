@@ -198,13 +198,21 @@ class Circuit extends AST{
     }
 
     public void initialize(Environment env){
+        System.out.println("Inserting inputs:");
+        for (String input : inputs){
+            System.out.println("Inserting input: "+input);
+            env.setVariable(input, null);
+        }
         for(Trace siminput : siminputs){
             String variable = siminput.signal;
 
             // ====== ERROR HANDLING ======
-            // if(!env.hasVariable(variable) || siminput.values.length == 0){
-            //     throw new RuntimeException("Variable not defined: "+variable);
-            // };
+            if(!env.hasVariable(variable) || siminput.values.length == 0){
+                System.out.println("Variable not defined: "+variable);
+                System.out.println("or");
+                System.out.println("Length of values: "+siminput.values.length);
+                throw new RuntimeException("Variable not defined: "+variable);
+            };
 
             Boolean initValue = siminput.values[0];
             env.setVariable(variable, initValue);
