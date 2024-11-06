@@ -65,8 +65,8 @@ class UseDef extends Expr{
     @Override
     public Boolean eval(Environment env) {
         // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'eval'");
-
+        // throw new UnsupportedOperationException("Unimplemented method 'eval'");
+        return false;
         // ==== POSSIBLE IMPLEMENTATION ====
         // Def d = env.getDef(f);
         // Environment newenv = new Environment(env);
@@ -202,9 +202,9 @@ class Circuit extends AST{
             String variable = siminput.signal;
 
             // ====== ERROR HANDLING ======
-            if(!env.hasVariable(variable) || siminput.values.length == 0){
-                throw new RuntimeException("Variable not defined: "+variable);
-            };
+            // if(!env.hasVariable(variable) || siminput.values.length == 0){
+            //     throw new RuntimeException("Variable not defined: "+variable);
+            // };
 
             Boolean initValue = siminput.values[0];
             env.setVariable(variable, initValue);
@@ -215,11 +215,12 @@ class Circuit extends AST{
         for(Update update : updates){
             update.eval(env);
         }
-
+        System.out.println("Initial State:");
         System.out.println(env.toString());
     }
 
     public void nextCycle(Environment env, int cycle){
+        System.out.println("Cycle: " + cycle);
         for(Trace siminput : siminputs){
             String variable = siminput.signal;
 
@@ -240,5 +241,13 @@ class Circuit extends AST{
 
         System.out.println(env.toString());
 
+    }
+
+    public void runSimulator(Environment env){
+        initialize(env);
+        int totalCycle = siminputs.get(0).values.length;
+        for(int cycle = 0; cycle < totalCycle; cycle++){
+            nextCycle(env, cycle);
+        }
     }
 }
