@@ -64,9 +64,9 @@ class UseDef extends Expr{
     }
     @Override
     public Boolean eval(Environment env) {
-        // TODO Auto-generated method stub
-        // throw new UnsupportedOperationException("Unimplemented method 'eval'");
+        // Default value before implementation
         return false;
+        
         // ==== POSSIBLE IMPLEMENTATION ====
         // Def d = env.getDef(f);
         // Environment newenv = new Environment(env);
@@ -202,9 +202,13 @@ class Circuit extends AST{
             String variable = siminput.signal;
 
             // ====== ERROR HANDLING ======
-            // if(!env.hasVariable(variable) || siminput.values.length == 0){
-            //     throw new RuntimeException("Variable not defined: "+variable);
-            // };
+            if(siminput.values == null){
+                System.out.println("Values not defined: " + variable);
+                throw new RuntimeException("Variable not defined: "+variable);
+            } else if(siminput.values.length == 0){
+                System.out.println("Length of values: " + siminput.values.length);
+                throw new RuntimeException("Variable not defined: "+variable);
+            };
 
             Boolean initValue = siminput.values[0];
             env.setVariable(variable, initValue);
