@@ -220,7 +220,7 @@ class Circuit extends AST{
                 throw new RuntimeException("Variable not defined: "+variable);
             } else if(siminput.values.length == 0){
                 System.out.println("Length of values: " + siminput.values.length);
-                throw new RuntimeException("Variable not defined: "+variable);
+                throw new RuntimeException("Length of simputs values is 0");
             };
 
             Boolean initValue = siminput.values[0];
