@@ -276,10 +276,10 @@ class Circuit extends AST{
         }
         String result = "";
         for(Trace siminput : siminputs){
-            result += siminput.toString() + " " + siminput.signal +  "\n";
+            result += siminput.toString() + " " + siminput.signal + "<br>\n";
         }
         for(Trace simoutput : simoutputs){
-            result += simoutput.toString() + " " + simoutput.signal +  "\n";
+            result += simoutput.toString() + " " + simoutput.signal +  "<br>\n";
         }
         System.out.println(result);
     }
