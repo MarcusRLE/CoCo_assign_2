@@ -161,7 +161,7 @@ class Circuit extends AST{
     List<Def> definitions;
     List<Update> updates;
     List<Trace>  siminputs;
-    List<Trace>  simoutputs;
+    List<Trace>  simoutputs = new ArrayList<Trace>();
     int simlength;
     Circuit(String name,
 	    List<String> inputs,
@@ -177,6 +177,16 @@ class Circuit extends AST{
 	this.definitions=definitions;
 	this.updates=updates;
 	this.siminputs=siminputs;
+    }
+
+    private int calcSimLenght(){
+        int length = siminputs.get(0).values.length;
+        for(Trace siminput : siminputs){
+            if(siminput.values.length != length){
+                return -1;
+            }
+        }
+        return length;
     }
 
     public void latchesInit(Environment env){
@@ -195,6 +205,12 @@ class Circuit extends AST{
     }
 
     public void initialize(Environment env){
+        if(0 > (simlength = calcSimLenght()))   throw new RuntimeException("Simulation inputs have different lengths");
+
+        for(String output : outputs){
+            simoutputs.add(new Trace(output, new Boolean[simlength]));
+        }
+
         for(Trace siminput : siminputs){
             String variable = siminput.signal;
 
@@ -216,12 +232,21 @@ class Circuit extends AST{
         for(Update update : updates){
             update.eval(env);
         }
-        System.out.println("==== [Initial Values] ====");
-        System.out.println(env.toString());
+        updateOutTrace(env, 0);
+        //System.out.println("==== [Initial Values] ====");
+        //System.out.println(env.toString());
+    }
+
+    private void updateOutTrace(Environment env, int cycle){
+        for(Trace simoutput : simoutputs){
+            String variable = simoutput.signal;
+            Boolean value = env.getVariable(variable);
+            simoutput.values[cycle] = value;
+        }
     }
 
     public void nextCycle(Environment env, int cycle){
-        System.out.println("==== [Cycle: " + (cycle) + "] ====");
+        //System.out.println("==== [Cycle: " + (cycle) + "] ====");
         for(Trace siminput : siminputs){
             String variable = siminput.signal;
 
@@ -239,16 +264,23 @@ class Circuit extends AST{
         for(Update update : updates){
             update.eval(env);
         }
-
-        System.out.println(env.toString());
+        updateOutTrace(env, cycle);
+        //System.out.println(env.toString());
 
     }
 
     public void runSimulator(Environment env){
         initialize(env);
-        int totalCycle = siminputs.get(0).values.length;
-        for(int cycle = 1; cycle < totalCycle; cycle++){
+        for(int cycle = 1; cycle < simlength; cycle++){
             nextCycle(env, cycle);
         }
+        String result = "";
+        for(Trace siminput : siminputs){
+            result += siminput.toString() + " " + siminput.signal +  "\n";
+        }
+        for(Trace simoutput : simoutputs){
+            result += simoutput.toString() + " " + simoutput.signal +  "\n";
+        }
+        System.out.println(result);
     }
 }
