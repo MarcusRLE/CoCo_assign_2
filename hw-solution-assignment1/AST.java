@@ -60,20 +60,17 @@ class UseDef extends Expr{
     String f;  // the name of the function, e.g. "xor" 
     List<Expr> args;  // arguments, e.g. [Signal1, /Signal2]
     UseDef(String f, List<Expr> args){
-	this.f=f; this.args=args;
+	    this.f=f; this.args=args;
     }
     @Override
     public Boolean eval(Environment env) {
-        // Default value before implementation
-        return false;
-        
-        // ==== POSSIBLE IMPLEMENTATION ====
-        // Def d = env.getDef(f);
-        // Environment newenv = new Environment(env);
-        // for(int i=0; i<args.size(); i++){
-        //     newenv.setVariable(d.args.get(i), args.get(i).eval(env));
-        // }
-        // return d.e.eval(newenv);
+        Def def = env.getDef(f);
+        List<String> argNames = def.args;
+        Environment newEnv = new Environment(env);
+        for(int i = 0; i < argNames.size(); i++){
+            newEnv.setVariable(argNames.get(i), args.get(i).eval(env));
+        }
+        return def.e.eval(newEnv);
     }
 }
 
@@ -94,7 +91,7 @@ class Def extends AST{
     List<String> args;  // formal arguments, e.g. [A,B]
     Expr e;  // body of the definition, e.g. A * /B + /A * B
     Def(String f, List<String> args, Expr e){
-	this.f=f; this.args=args; this.e=e;
+	    this.f=f; this.args=args; this.e=e;
     }
 }
 
@@ -224,7 +221,6 @@ class Circuit extends AST{
     }
 
     public void nextCycle(Environment env, int cycle){
-        // cycle++;
         System.out.println("==== [Cycle: " + (cycle) + "] ====");
         for(Trace siminput : siminputs){
             String variable = siminput.signal;
