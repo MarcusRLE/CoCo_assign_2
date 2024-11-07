@@ -47,8 +47,9 @@ public class main {
 	   AST.java). */
 	
 	Circuit p = (Circuit) new AstMaker().visit(parseTree);
-	System.out.println("\n\n<h2> Simulation trace </h2><br>\n");
+	System.out.println("\n\n<h2> Simulation trace </h2>");
 	p.runSimulator(new Environment(p.definitions));
+	System.out.println("\n</body></html>\n");
 	/* For the second assignment you need to extend the classes of
 	    AST.java with some methods that correspond to running a
 	    simulation of the given hardware for given simulation
@@ -102,7 +103,7 @@ class JaxMaker extends AbstractParseTreeVisitor<String> implements hwVisitor<Str
 	for(hwParser.SimInpContext t:ctx.simin)
 	    result+= visit(t);
 
-	result += "\n</body></html>\n";
+	// result += "\n</body></html>\n";
 	return result;
     };
 

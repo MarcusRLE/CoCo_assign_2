@@ -275,12 +275,14 @@ class Circuit extends AST{
             nextCycle(env, cycle);
         }
         String result = "";
+        result = "<p style =\"font-family:'Courier New'\">";
         for(Trace siminput : siminputs){
-            result += siminput.toString() + " " + siminput.signal + "<br>\n";
+            result += "<b>" + siminput.toString() + " " + siminput.signal + "</b><br>\n";
         }
         for(Trace simoutput : simoutputs){
-            result += simoutput.toString() + " " + simoutput.signal +  "<br>\n";
+            result += "<b>" + simoutput.toString() + " " + simoutput.signal +  "</b><br>\n";
         }
+        result += "</p>";
         System.out.println(result);
     }
 }
