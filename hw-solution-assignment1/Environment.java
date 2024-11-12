@@ -58,10 +58,12 @@ class Environment {
     
     public String toString() {
 	String table = "";
+    
+
 	for (Entry<String,Boolean> entry : variableValues.entrySet()) {
 	    table += entry.getKey() + "\t-> " + entry.getValue() + "\n";
 	}
 	return table;
-    }   
+    }
 }
 

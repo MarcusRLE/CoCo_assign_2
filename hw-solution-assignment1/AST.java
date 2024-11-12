@@ -5,8 +5,8 @@ import java.util.ArrayList;
 
 public abstract class AST{
     public void error(String msg){
-	System.err.println(msg);
-	System.exit(-1);
+        System.err.println(msg);
+        System.exit(-1);
     }
 };
 
@@ -17,24 +17,41 @@ public abstract class AST{
    (Negation). Moreover, an expression can be using any of the
    functions defined in the definitions. */
 
-abstract class Expr extends AST{}
+abstract class Expr extends AST{
+    abstract public Boolean eval(Environment env);
+}
 
 class Conjunction extends Expr{
     // Example: Signal1 * Signal2 
     Expr e1,e2;
     Conjunction(Expr e1,Expr e2){this.e1=e1; this.e2=e2;}
+    @Override
+    public Boolean eval(Environment env) {
+        Boolean conj = e1.eval(env) && e2.eval(env); 
+        return conj;
+    }
 }
 
 class Disjunction extends Expr{
     // Example: Signal1 + Signal2 
     Expr e1,e2;
     Disjunction(Expr e1,Expr e2){this.e1=e1; this.e2=e2;}
+    @Override
+    public Boolean eval(Environment env) {
+        Boolean disj = e1.eval(env) || e2.eval(env); 
+        return disj;
+    }
 }
 
 class Negation extends Expr{
     // Example: /Signal
     Expr e;
     Negation(Expr e){this.e=e;}
+    @Override
+    public Boolean eval(Environment env) {
+        Boolean neg = !e.eval(env); 
+        return neg;
+    }
 }
 
 class UseDef extends Expr{
@@ -43,13 +60,28 @@ class UseDef extends Expr{
     String f;  // the name of the function, e.g. "xor" 
     List<Expr> args;  // arguments, e.g. [Signal1, /Signal2]
     UseDef(String f, List<Expr> args){
-	this.f=f; this.args=args;
+	    this.f=f; this.args=args;
+    }
+    @Override
+    public Boolean eval(Environment env) {
+        Def def = env.getDef(f);
+        List<String> argNames = def.args;
+        Environment newEnv = new Environment(env);
+        for(int i = 0; i < argNames.size(); i++){
+            newEnv.setVariable(argNames.get(i), args.get(i).eval(env));
+        }
+        return def.e.eval(newEnv);
     }
 }
 
 class Signal extends Expr{
     String varname; // a signal is just identified by a name 
     Signal(String varname){this.varname=varname;}
+    @Override
+    public Boolean eval(Environment env) {
+        Boolean value = env.getVariable(varname);
+        return value;
+    }
 }
 
 class Def extends AST{
@@ -59,7 +91,7 @@ class Def extends AST{
     List<String> args;  // formal arguments, e.g. [A,B]
     Expr e;  // body of the definition, e.g. A * /B + /A * B
     Def(String f, List<String> args, Expr e){
-	this.f=f; this.args=args; this.e=e;
+	    this.f=f; this.args=args; this.e=e;
     }
 }
 
@@ -71,6 +103,11 @@ class Update extends AST{
     String name;  // Signal being updated, e.g. "Signal1"
     Expr e;  // The value it receives, e.g., "/Signal2"
     Update(String name, Expr e){this.e=e; this.name=name;}
+
+    public void eval(Environment env) {
+        Boolean newValue = e.eval(env);
+        env.setVariable(name, newValue);
+    }
 }
 
 /* A Trace is a signal and an array of Booleans, for instance each
@@ -85,8 +122,16 @@ class Trace extends AST{
     String signal;
     Boolean[] values;
     Trace(String signal, Boolean[] values){
-	this.signal=signal;
-	this.values=values;
+	    this.signal=signal;
+	    this.values=values;
+    }
+
+    public String toString(){
+        String str = "";
+        for(Boolean value : values){
+            str += value ? "1" : "0";
+        }
+        return str;
     }
 }
 
@@ -116,7 +161,7 @@ class Circuit extends AST{
     List<Def> definitions;
     List<Update> updates;
     List<Trace>  siminputs;
-    List<Trace>  simoutputs;
+    List<Trace>  simoutputs = new ArrayList<Trace>();
     int simlength;
     Circuit(String name,
 	    List<String> inputs,
@@ -132,5 +177,112 @@ class Circuit extends AST{
 	this.definitions=definitions;
 	this.updates=updates;
 	this.siminputs=siminputs;
+    }
+
+    private int calcSimLenght(){
+        int length = siminputs.get(0).values.length;
+        for(Trace siminput : siminputs){
+            if(siminput.values.length != length){
+                return -1;
+            }
+        }
+        return length;
+    }
+
+    public void latchesInit(Environment env){
+        for(String latch : latches){
+            String latchOutput = latch+"'";
+            env.setVariable(latchOutput, false);
+        }
+    }
+
+    public void latchUpdate(Environment env){
+        for(String latch : latches){
+            Boolean currentValue = env.getVariable(latch);
+            String latchOutput = latch+"'";
+            env.setVariable(latchOutput, currentValue);
+        }
+    }
+
+    public void initialize(Environment env){
+        if(0 > (simlength = calcSimLenght()))   throw new RuntimeException("Simulation inputs have different lengths");
+
+        for(String output : outputs){
+            simoutputs.add(new Trace(output, new Boolean[simlength]));
+        }
+
+        for(Trace siminput : siminputs){
+            String variable = siminput.signal;
+
+            // ====== ERROR HANDLING ======
+            if(siminput.values == null){
+                System.out.println("Values not defined: " + variable);
+                throw new RuntimeException("Variable not defined: "+variable);
+            } else if(siminput.values.length == 0){
+                System.out.println("Length of values: " + siminput.values.length);
+                throw new RuntimeException("Length of simputs values is 0");
+            };
+
+            Boolean initValue = siminput.values[0];
+            env.setVariable(variable, initValue);
+        }
+
+        latchesInit(env);
+
+        for(Update update : updates){
+            update.eval(env);
+        }
+        updateOutTrace(env, 0);
+        //System.out.println("==== [Initial Values] ====");
+        //System.out.println(env.toString());
+    }
+
+    private void updateOutTrace(Environment env, int cycle){
+        for(Trace simoutput : simoutputs){
+            String variable = simoutput.signal;
+            Boolean value = env.getVariable(variable);
+            simoutput.values[cycle] = value;
+        }
+    }
+
+    public void nextCycle(Environment env, int cycle){
+        //System.out.println("==== [Cycle: " + (cycle) + "] ====");
+        for(Trace siminput : siminputs){
+            String variable = siminput.signal;
+
+            // ====== ERROR HANDLING ======
+            if(siminput.values.length < cycle){
+                throw new RuntimeException("Value [" + cycle + "] of variable '" + variable + "' not defined");
+            };
+
+            Boolean nextValue = siminput.values[cycle];
+            env.setVariable(variable, nextValue);
+        }
+
+        latchUpdate(env);
+
+        for(Update update : updates){
+            update.eval(env);
+        }
+        updateOutTrace(env, cycle);
+        //System.out.println(env.toString());
+
+    }
+
+    public void runSimulator(Environment env){
+        initialize(env);
+        for(int cycle = 1; cycle < simlength; cycle++){
+            nextCycle(env, cycle);
+        }
+        String result = "";
+        result = "<p style =\"font-family:'Courier New'\">";
+        for(Trace siminput : siminputs){
+            result += "<b>" + siminput.toString() + " " + siminput.signal + "</b><br>\n";
+        }
+        for(Trace simoutput : simoutputs){
+            result += "<b>" + simoutput.toString() + " " + simoutput.signal +  "</b><br>\n";
+        }
+        result += "</p>";
+        System.out.println(result);
     }
 }
