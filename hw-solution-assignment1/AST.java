@@ -66,6 +66,12 @@ class UseDef extends Expr{
     public Boolean eval(Environment env) {
         Def def = env.getDef(f);
         List<String> argNames = def.args;
+
+        /*
+         * We create a new environment, which is a copy of the original
+         * to evaluate the function so that the variables defined in the 
+         * function are not saved in the original environment.
+         */
         Environment newEnv = new Environment(env);
         for(int i = 0; i < argNames.size(); i++){
             newEnv.setVariable(argNames.get(i), args.get(i).eval(env));
@@ -181,6 +187,8 @@ class Circuit extends AST{
 
     private int calcSimLenght(){
         int length = siminputs.get(0).values.length;
+
+        // Comparing length of all siminputs to verify if they are equal
         for(Trace siminput : siminputs){
             if(siminput.values.length != length){
                 return -1;
@@ -191,7 +199,7 @@ class Circuit extends AST{
 
     public void latchesInit(Environment env){
         for(String latch : latches){
-            String latchOutput = latch+"'";
+            String latchOutput = latch + "'";
             env.setVariable(latchOutput, false);
         }
     }
@@ -199,18 +207,22 @@ class Circuit extends AST{
     public void latchUpdate(Environment env){
         for(String latch : latches){
             Boolean currentValue = env.getVariable(latch);
-            String latchOutput = latch+"'";
+            String latchOutput = latch + "'";
             env.setVariable(latchOutput, currentValue);
         }
     }
 
     public void initialize(Environment env){
+
+        // Setting simlength + error handling
         if(0 > (simlength = calcSimLenght()))   throw new RuntimeException("Simulation inputs have different lengths");
 
+        // Initializing outputs with empty traces of length simlength
         for(String output : outputs){
             simoutputs.add(new Trace(output, new Boolean[simlength]));
         }
 
+        // Initializing inputs with values from cycle 0
         for(Trace siminput : siminputs){
             String variable = siminput.signal;
 
@@ -229,12 +241,13 @@ class Circuit extends AST{
 
         latchesInit(env);
 
+        // Updating to initialize remaining signals
         for(Update update : updates){
             update.eval(env);
         }
+
+        // Setting trace for simoutputs at cycle 0
         updateOutTrace(env, 0);
-        //System.out.println("==== [Initial Values] ====");
-        //System.out.println(env.toString());
     }
 
     private void updateOutTrace(Environment env, int cycle){
@@ -246,11 +259,12 @@ class Circuit extends AST{
     }
 
     public void nextCycle(Environment env, int cycle){
-        //System.out.println("==== [Cycle: " + (cycle) + "] ====");
+        // Setting inputs of simnputs variables for the current cycle
         for(Trace siminput : siminputs){
             String variable = siminput.signal;
 
             // ====== ERROR HANDLING ======
+            // Checking if value is defined for the current cycle
             if(siminput.values.length < cycle){
                 throw new RuntimeException("Value [" + cycle + "] of variable '" + variable + "' not defined");
             };
@@ -259,21 +273,28 @@ class Circuit extends AST{
             env.setVariable(variable, nextValue);
         }
 
+        // Updating latches
         latchUpdate(env);
 
+        // Updating signals
         for(Update update : updates){
             update.eval(env);
         }
-        updateOutTrace(env, cycle);
-        //System.out.println(env.toString());
 
+        // Setting trace for simoutputs at current cycle
+        updateOutTrace(env, cycle);
     }
 
     public void runSimulator(Environment env){
+
         initialize(env);
+
+        // Running simulation for all cycles starting at 1 (0 is already initialized)
         for(int cycle = 1; cycle < simlength; cycle++){
             nextCycle(env, cycle);
         }
+
+        // Printing simpinputs and trace of simoutputs
         String result = "";
         result = "<p style =\"font-family:'Courier New'\">";
         for(Trace siminput : siminputs){

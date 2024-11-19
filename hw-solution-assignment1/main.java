@@ -47,14 +47,19 @@ public class main {
 	   AST.java). */
 	
 	Circuit p = (Circuit) new AstMaker().visit(parseTree);
+
+	// Adding HTML formatting for the title "Simulation trace"
 	System.out.println("\n\n<h2> Simulation trace </h2>");
+
+	/*
+	 * Running the simulator, adding the simulation trace to the output
+	 * 
+	 * We use the definitions from Circuit p to create a new environment, which is used in runSimulator.
+	 */
 	p.runSimulator(new Environment(p.definitions));
+
+	// Adding HTML formatting for the end of the output
 	System.out.println("\n</body></html>\n");
-	/* For the second assignment you need to extend the classes of
-	    AST.java with some methods that correspond to running a
-	    simulation of the given hardware for given simulation
-	    inputs. The method for starting the simulation should be
-	    called here for the Circuit p. */
     }
 
 	
