@@ -137,6 +137,7 @@ class Trace extends AST{
         for(Boolean value : values){
             str += value ? "1" : "0";
         }
+        str += " " + signal;
         return str;
     }
 }
@@ -294,12 +295,16 @@ class Circuit extends AST{
             nextCycle(env, cycle);
         }
 
+        printTraces();
+    }
+
+    private void printTraces(){
         // Printing simpinputs and trace of simoutputs
         for(Trace siminput : siminputs){
-            System.out.println(siminput.toString() + " " + siminput.signal);
+            System.out.println(siminput.toString());
         }
         for(Trace simoutput : simoutputs){
-            System.out.println(simoutput.toString() + " " + simoutput.signal);
+            System.out.println(simoutput.toString());
         }
     }
 }
