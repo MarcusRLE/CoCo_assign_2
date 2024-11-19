@@ -295,15 +295,11 @@ class Circuit extends AST{
         }
 
         // Printing simpinputs and trace of simoutputs
-        String result = "";
-        result = "<p style =\"font-family:'Courier New'\">";
         for(Trace siminput : siminputs){
-            result += "<b>" + siminput.toString() + " " + siminput.signal + "</b><br>\n";
+            System.out.println(siminput.toString() + " " + siminput.signal);
         }
         for(Trace simoutput : simoutputs){
-            result += "<b>" + simoutput.toString() + " " + simoutput.signal +  "</b><br>\n";
+            System.out.println(simoutput.toString() + " " + simoutput.signal);
         }
-        result += "</p>";
-        System.out.println(result);
     }
 }
