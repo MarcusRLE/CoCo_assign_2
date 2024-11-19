@@ -37,19 +37,15 @@ public class main {
 	// and parse anything from the grammar for "start"
 	ParseTree parseTree = parser.start();
 
-	// The JaxMaker is a visitor that produces html/jax output as a string
-	String result = new JaxMaker().visit(parseTree);
-	System.out.println("\n\n\n"+result);
-
 	/* The AstMaker generates the abstract syntax to be used for
 	   the second assignment, where for the start symbol of the
 	   ANTLR grammar, it generates an object of class Circuit (see
 	   AST.java). */
 	
 	Circuit p = (Circuit) new AstMaker().visit(parseTree);
+	System.out.println("\n\n====================================");
 
-	// Adding HTML formatting for the title "Simulation trace"
-	System.out.println("\n\n<h2> Simulation trace </h2>");
+	System.out.println("\nSimulation trace for " + args[0] + "\n");
 
 	/*
 	 * Running the simulator, adding the simulation trace to the output
@@ -57,109 +53,10 @@ public class main {
 	 * We use the definitions from Circuit p to create a new environment, which is used in runSimulator.
 	 */
 	p.runSimulator(new Environment(p.definitions));
-
-	// Adding HTML formatting for the end of the output
-	System.out.println("\n</body></html>\n");
+	System.out.println("\n====================================\n\n");
     }
 
 	
-}
-
-// The visitor for producing html/jax -- solution for assignment 1, task 3:
-
-class JaxMaker extends AbstractParseTreeVisitor<String> implements hwVisitor<String> {
-
-    public String visitStart(hwParser.StartContext ctx){
-	// 
-	String result = "<!DOCTYPE html>\n"+
-	    "<html><head><title> "+ctx.name.getText()+ "</title>\n"+
-	    "<script src=\"https://polyfill.io/v3/polyfill.min.js?features=es6\"></script>\n"+
-	    "<script type=\"text/javascript\" id=\"MathJax-script\" async src=\"https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js\">\n"+
-	    "</script></head><body>\n";
-	result+="<h1>" +ctx.name.getText()+ "</h1>\n"
-	    + "<h2> Inputs </h2>\n";
-       
-	for(Token t:ctx.ins){
-	    result += t.getText() + " ";
-	}
-
-	result+="\n <h2> Outputs </h2>\n ";
-	for(Token t:ctx.outs){
-	    result += t.getText()+ " ";
-	}
-
-	result+="\n <h2> Latches </h2>\n";
-        for(Token t:ctx.ls){
-	    result += t.getText()+ " ";
-	}
-
-	result+="\n <h2> Definitions </h2>\n";
-	for(hwParser.DefdeclContext t:ctx.defs){
-	    result += visit(t);
-	}
-	
-	result+="\n <h2> Updates </h2>\n";
-	
-	for(hwParser.UpdatedeclContext t:ctx.up){
-	    result += visit(t);
-	}
-
-	result+="\n <h2> Simulation inputs </h2>\n";
-	for(hwParser.SimInpContext t:ctx.simin)
-	    result+= visit(t);
-
-	// result += "\n</body></html>\n";
-	return result;
-    };
-
-    public String visitSimInp(hwParser.SimInpContext ctx){
-	return "<b>"+ctx.in.getText()+"</b>: "+ctx.str.getText()+"<br>\n";
-    }
-    
-    public String visitUpdatedecl(hwParser.UpdatedeclContext ctx){
-	return ctx.write.getText()+"&larr;\\("+ visit(ctx.e)+"\\)<br>\n";
-    }
-
-    public String visitDefdecl(hwParser.DefdeclContext ctx){
-	String args="";
-	Boolean first=true;
-	for(Token t:ctx.xs){
-	    if(first) first=false; else args+=",";
-	    args+=t.getText();
-	}
-	return "\\(\\mathit{"+ctx.f.getText()+"}("+args+")="+visit(ctx.e)+"\\)<br>\n";
-    }
-
-    public String visitUseDef(hwParser.UseDefContext ctx){
-	String args="";
-	Boolean first=true;
-	for(hwParser.ExprContext e:ctx.es){
-	    if(first) first=false; else args+=",";
-	    args+=visit(e);
-	}
-	return "\\mathit{"+ctx.f.getText()+"}("+args+")";
-    }
-    
-    public String visitSignal(hwParser.SignalContext ctx){
-	return "\\mathrm{"+ctx.x.getText()+"}";
-    };
-
-    public String visitConjunction(hwParser.ConjunctionContext ctx){
-	return "("+visit(ctx.e1)+"\\wedge"+visit(ctx.e2)+")";
-    };
-
-    public String visitDisjunction(hwParser.DisjunctionContext ctx){
-	return "("+visit(ctx.e1)+"\\vee"+visit(ctx.e2)+")";
-    };
-
-    public String visitNegation(hwParser.NegationContext ctx){
-	return "\\neg("+visit(ctx.e)+")";
-    };
-
-    public String visitParenthesis(hwParser.ParenthesisContext ctx){
-	return visit(ctx.e);
-    }
-
 }
 
 // The visitor for producing the Abstract Syntax (see AST.java).
