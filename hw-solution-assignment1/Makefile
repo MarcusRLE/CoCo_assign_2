@@ -25,7 +25,10 @@ run:	main.class
 	java $(classpathoption) main 01b-hello-world-withdef.hw 
 	java $(classpathoption) main 02-trafiklys-minimal.hw
 	java $(classpathoption) main 03-trafiklys.hw  
-	java $(classpathoption) main 04-von-Neumann.hw 
+	java $(classpathoption) main 04-von-Neumann.hw
+
+	echo -e "\n ############### TEST FILES ############### \n"
+	java $(classpathoption) main test1_xor.hw 
 
 grun:	hwLexer.class hwParser.class 01-hello-world.hw
 	$(grun) impl start -gui -tokens 01-hello-world.hw
