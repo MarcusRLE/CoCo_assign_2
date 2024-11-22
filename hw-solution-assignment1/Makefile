@@ -26,8 +26,7 @@ run:	main.class
 	java $(classpathoption) main 02-trafiklys-minimal.hw
 	java $(classpathoption) main 03-trafiklys.hw  
 	java $(classpathoption) main 04-von-Neumann.hw
-
-test:	main.class
+	@echo "Running tests..."
 	./testing.sh
 
 grun:	hwLexer.class hwParser.class 01-hello-world.hw
