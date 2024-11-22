@@ -18,3 +18,14 @@ if [[ "$result" == "$expected" ]]; then
 else
 	echo "Error: expected $expected, got $result"
 fi
+
+# Test 3
+result=$(java -cp 'antlr-4.13.2-complete.jar:.' main ./test3_latches.hw)
+expected="1100110 A
+1010101 B
+1110000 C"
+if [[ "$result" == "$expected" ]]; then
+	echo "Test 2 passed successfully"
+else
+	echo "Error: expected $expected, got $result"
+fi

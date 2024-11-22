@@ -1,0 +1,22 @@
+hardware: multiple_latches_sim
+
+inputs: A B C
+outputs: D E F
+
+latches: D E F
+
+updates:
+D = A
+E = B
+F = C
+
+siminputs:
+A=1100110
+B=1010101
+C=1110000
+
+/*
+1100110 A
+1010101 B
+1110000 C
+*/
