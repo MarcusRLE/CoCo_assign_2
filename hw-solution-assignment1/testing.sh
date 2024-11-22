@@ -24,9 +24,9 @@ result=$(java -cp 'antlr-4.13.2-complete.jar:.' main ./test3_latches.hw)
 expected="1100110 A
 1010101 B
 1110000 C
-1100110 D
-1010101 E
-1110000 F"
+1001100 D
+0100010 E
+0010001 F"
 if [[ "$result" == "$expected" ]]; then
 	echo "Test 3 passed successfully"
 else

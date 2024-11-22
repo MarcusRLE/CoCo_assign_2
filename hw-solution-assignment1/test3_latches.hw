@@ -6,9 +6,9 @@ outputs: D E F
 latches: D E F
 
 updates:
-D = A
-E = B
-F = C
+D = F' + (A * B)
+E = /B * (D' + /F')
+F = E' + D' * (C * /A)
 
 siminputs:
 A=1100110
