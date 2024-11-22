@@ -5,7 +5,7 @@ expected="0010100 A
 if [[ "$result" == "$expected" ]]; then
 	echo "Test 1 passed successfully"
 else
-	echo "Error: expected: $expected, got: $result"
+	echo "Error in test 1: expected: $expected, got: $result"
 fi
 
 # Test 2
@@ -16,16 +16,19 @@ expected="0010100 A
 if [[ "$result" == "$expected" ]]; then
 	echo "Test 2 passed successfully"
 else
-	echo "Error: expected $expected, got $result"
+	echo "Error in test 2: expected $expected, got $result"
 fi
 
 # Test 3
 result=$(java -cp 'antlr-4.13.2-complete.jar:.' main ./test3_latches.hw)
 expected="1100110 A
 1010101 B
-1110000 C"
+1110000 C
+1100110 D
+1010101 E
+1110000 F"
 if [[ "$result" == "$expected" ]]; then
-	echo "Test 2 passed successfully"
+	echo "Test 3 passed successfully"
 else
-	echo "Error: expected $expected, got $result"
+	echo "Error in test 3: expected $expected, got $result"
 fi
