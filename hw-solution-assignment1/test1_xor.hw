@@ -1,0 +1,15 @@
+hardware: xor_gate_sim
+
+inputs: A
+outputs: B
+
+latches: B
+
+def: xor(a,b) = (a /b) + (/a b)
+
+updates:
+B = xor(A, B')
+
+siminputs:
+A=0010100
+

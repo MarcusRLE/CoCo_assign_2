@@ -43,9 +43,9 @@ public class main {
 	   AST.java). */
 	
 	Circuit p = (Circuit) new AstMaker().visit(parseTree);
-	System.out.println("\n\n====================================");
-
-	System.out.println("\nSimulation trace for " + args[0] + "\n");
+	// System.out.println("\n\n====================================");
+	//
+	// System.out.println("\nSimulation trace for " + args[0] + "\n");
 
 	/*
 	 * Running the simulator, adding the simulation trace to the output
@@ -53,7 +53,7 @@ public class main {
 	 * We use the definitions from Circuit p to create a new environment, which is used in runSimulator.
 	 */
 	p.runSimulator(new Environment(p.definitions));
-	System.out.println("\n====================================\n\n");
+	// System.out.println("\n====================================\n\n");
     }
 
 	

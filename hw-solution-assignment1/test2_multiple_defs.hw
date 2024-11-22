@@ -1,0 +1,23 @@
+hardware: multiple_defs
+
+inputs: A
+outputs: B C
+
+latches: B C
+
+def: def1(a,b) = a /b
+def: def2(a,b) = def1(/a + b, b) + /b
+def: def3(a,b,c) = def2(a, c)
+
+updates:
+B = def3(A, B', C')
+C = def1(B', def2(C', B'))
+
+siminputs:
+A=0010100
+
+/*
+0010100 A
+1100110 B
+0110011 C
+*/
